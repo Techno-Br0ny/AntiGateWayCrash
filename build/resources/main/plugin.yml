@@ -1,0 +1,11 @@
+name: AntiGateWayCrash
+version: '0.1'
+main: prevent.antigatewaycrash.AntiGateWayCrash
+api-version: 1.19
+load: STARTUP
+authors: [Finn, Dory, CuteCupCake,DR1PST4R]
+description: Prevents a crash causing by entering a different dimension with an entity/mob
+commands:
+  entitycount:
+    description: Provides information about the entitycount in a certain chunk(s)
+    usage: /<command>
