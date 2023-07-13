@@ -5,21 +5,21 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.ChatColor;
+
+import java.util.EnumSet;
 
 public final class AntiGateWayCrash extends JavaPlugin {
 
     public class EntityPortalListener implements Listener {
 
-        private final EntityType[] blockedMobs = {
+        private final EnumSet<EntityType> blockedMobs = EnumSet.of(
                 EntityType.HORSE,
-                EntityType.BOAT,
                 EntityType.DONKEY,
                 EntityType.MINECART_CHEST,
                 EntityType.MINECART,
@@ -29,7 +29,7 @@ public final class AntiGateWayCrash extends JavaPlugin {
                 EntityType.MINECART_MOB_SPAWNER,
                 EntityType.MINECART_TNT
                 // Add more mob types here as needed
-        };
+        );
 
         /**
          * Handles the entity portal event.
@@ -48,18 +48,13 @@ public final class AntiGateWayCrash extends JavaPlugin {
         }
 
         /**
-         * Checks if the given entity is a blocked mob.
+         * Checks if the given entity is a blocked mob
          *
          * @param entity The entity to check.
          * @return true if the entity is a blocked mob, false otherwise.
          */
         private boolean isBlockedMob(Entity entity) {
-            for (EntityType mobType : blockedMobs) {
-                if (entity.getType() == mobType) {
-                    return true;
-                }
-            }
-            return false;
+            return blockedMobs.contains(entity.getType());
         }
 
         /**
@@ -86,20 +81,37 @@ public final class AntiGateWayCrash extends JavaPlugin {
         if (command.getName().equalsIgnoreCase("entitycount")) {
             if (sender instanceof Player) {
                 Player admin = (Player) sender;
-                int chunkX = admin.getLocation().getChunk().getX();
-                int chunkZ = admin.getLocation().getChunk().getZ();
-                sendEntityCountToAdmin(admin, chunkX, chunkZ);
-                return true;
+
+                // Check if the player has the admin permission
+                if (admin.hasPermission("prevent.antigatewaycrash.admin")) {
+                    int chunkX = admin.getLocation().getChunk().getX();
+                    int chunkZ = admin.getLocation().getChunk().getZ();
+                    sendEntityCountToAdmin(admin, chunkX, chunkZ);
+                    return true;
+                } else {
+                    // Send a message to non-admin players
+                    admin.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public void sendEntityCountToAdmin(Player admin, int chunkX, int chunkZ) {
-        Chunk chunk = Bukkit.getWorld("world").getChunkAt(chunkX, chunkZ);
-        Entity[] entities = chunk.getEntities();
-        int entityCount = entities.length;
-        String message = "There are " + entityCount + " entities in chunk (" + chunkX + ", " + chunkZ + ")";
+        int entityCount = 0;
+        for (int x = chunkX - 2; x <= chunkX + 2; x++) {
+            for (int z = chunkZ - 2; z <= chunkZ + 2; z++) {
+                Chunk chunk = admin.getWorld().getChunkAt(x, z);
+                for (Entity entity : chunk.getEntities()) {
+                    if (entity instanceof Boat || entity instanceof Mob) {
+                        entityCount++;
+                    }
+                }
+            }
+        }
+        String message = "There are " + ChatColor.GREEN + entityCount + ChatColor.WHITE + " entities in the chunk area around you";
+
         admin.sendMessage(message);
     }
 

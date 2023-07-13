@@ -1,5 +1,5 @@
 name: AntiGateWayCrash
-version: '0.1'
+version: '0.35'
 main: prevent.antigatewaycrash.AntiGateWayCrash
 api-version: 1.19
 load: STARTUP
